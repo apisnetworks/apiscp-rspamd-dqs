@@ -1,0 +1,19 @@
+---
+# Requires registration. See README.md in distribution
+rspamd_dqs_key: ""
+
+# used in regex for consistency
+override_fragment: "override.d/dqs"
+rspamd_override_dir: "{{ rspamd_config_dir }}/{{ override_fragment }}"
+rspamd_injection_override_base: "{{ rspamd_config_dir }}/override.d/"
+
+###########
+# Internal
+###########
+# Flip install/uninstall mode
+_include_mode: true
+dqs_override_conf:
+  "emails.conf": "emails.conf"
+  "rbl.conf": "rbl.conf"
+  "rbl_group.conf": "rbl_group.conf"
+  "surbl.conf": "surbl.conf"

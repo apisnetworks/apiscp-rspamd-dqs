@@ -1,0 +1,3 @@
+[submodule "files/rspamd-dqs"]
+	path = files/rspamd-dqs
+	url = https://github.com/spamhaus/rspamd-dqs.git

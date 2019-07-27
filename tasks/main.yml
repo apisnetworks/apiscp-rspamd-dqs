@@ -1,0 +1,64 @@
+---
+- name: Assert key set
+  assert:
+    that: "{{ rspamd_dqs_key != '' }}"
+    fail_msg: "A DQS key (rspamd_dqs_key var) is required to use this module"
+- name: Assert mail_enabled
+  assert:
+    that: "{{ mail_enabled | bool }}"
+    fail_msg: "Mail must be enabled to use"
+- name: Assert spam filter is rspamd
+  assert:
+    that: "{{ spamfilter == 'rspamd' }}"
+    fail_msg: "'spamfilter' must be set to rspamd"
+- name: Import rspamd defaults
+  include_vars:
+    file: "{{ playbook_dir }}/roles/mail/rspamd/defaults/main.yml"
+  when: mail_rspamd_marker is not defined and spamfilter == "rspamd"
+
+- name: Set include() mode - add
+  set_fact:
+    _include_mode: true
+- name: Set include() mode - remove
+  set_fact:
+    _include_mode: false
+  tags: [never, uninstall]
+
+- name: "{{ _include_mode | ternary('Create', 'Remove') }} DQS configuration"
+  file:
+    path: "{{ rspamd_override_dir }}"
+    state: "{{ _include_mode | ternary('directory', 'absent') }}"
+  notify:
+    - Restart rspamd
+- name: Copy DQS configuration to override directory
+  copy:
+    src: "files/rspamd-dqs/{{ item.key }}"
+    dest: "{{ rspamd_override_dir }}/{{item.key}}"
+    force: "{{ force | default('no') }}"
+  with_dict: "{{ dqs_override_conf }}"
+  loop_control:
+    label: "Copying files/rspamd-dqs/{{item.key}} to {{ rspamd_override_dir }}/{{item.key}}"
+  notify:
+  - Restart rspamd
+  when: _include_mode
+- name: Replace DQS templated key
+  replace:
+    path: "{{ rspamd_override_dir }}/{{item.key}}"
+    regexp: '\byour_DQS_key\.'
+    replace: "{{ rspamd_dqs_key }}."
+  with_dict: "{{ dqs_override_conf }}"
+  loop_control:
+    label: "Replacing your_DQS_key in {{ rspamd_override_dir }}/{{item}}"
+  notify:
+    - Restart rspamd
+  when: _include_mode
+- name: "{{ _include_mode | ternary('Add', 'Remove') }} DQS include() directives in override.d/"
+  lineinfile:
+    regexp: '^\s*\.include\(.+\) "\$LOCAL_CONFDIR/{{override_fragment | regex_escape()}}/{{ item.key | regex_escape() }}"'
+    line: '.include(try=true,priority=10,duplicate=merge) "$LOCAL_CONFDIR/{{ override_fragment }}/{{item.key}}"'
+    create: yes
+    path: "{{ rspamd_injection_override_base }}/{{ item.value }}"
+    state: "{{ _include_mode | ternary('present', 'absent') }}"
+  with_dict: "{{ dqs_override_conf }}"
+  notify:
+    - Restart rspamd
