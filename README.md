@@ -29,7 +29,7 @@ rm -rf addins/rspamd-dqs
 ```
 
 ## Verifying installation
-`rspamdadm configtest` will validate your configuration. *Syntax OK* indicates there are no issues with mail. After a day look for SpamHaus scores in rspamd:
+`rspamadm configtest` will validate your configuration. *Syntax OK* indicates there are no issues with mail. After a day look for SpamHaus scores in rspamd:
 
 ```bash
 zcat /var/log/rspamd/rspamd.log.1.gz | grep ZRD_ 
