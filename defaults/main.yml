@@ -13,7 +13,8 @@ rspamd_injection_override_base: "{{ rspamd_config_dir }}/override.d/"
 # Flip install/uninstall mode
 _include_mode: true
 dqs_override_conf:
-  "emails.conf": "emails.conf"
   "rbl.conf": "rbl.conf"
   "rbl_group.conf": "rbl_group.conf"
-  "surbl.conf": "surbl.conf"
+  "sh_rbl_group_hbl.conf": "sh_rbl_group_hbl.conf"
+  "sh_rbl_hbl.conf": "sh_rbl_hbl.conf"
+  "rspamd.local.lua": "rspamd.local.lua"
